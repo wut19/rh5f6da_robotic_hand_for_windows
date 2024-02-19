@@ -1,5 +1,5 @@
-### Progress
+## Progress
 - hand control
 - hand info read
-### Bugs
+## Bugs
 - hand info is wrong!
