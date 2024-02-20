@@ -85,16 +85,20 @@ class RoboticHand:
             'data': data
         }
         self.usbcan.write_can(info)
-        print(self.usbcan.received_msg1['data'][0], self.usbcan.received_msg1['data'][1])
-        assert self.usbcan.received_msg1['data'][0] == 0 and self.usbcan.received_msg1['data'][1] == joint_index, 'RECEIVE ERROR !!!'
+        msg = self.usbcan.read_can()
+        assert msg['data'][0] == 0 and msg['data'][1] == int(joint_index,16), 'RECEIVE ERROR !!!'
         
-        rec_data1 = self.usbcan.received_msg1['data'][2]
-        rec_data2 = self.usbcan.received_msg1['data'][3]
+        rec_data1 = msg['data'][3]
+        rec_data2 = msg['data'][4]
         
-        if info_type == 'joint_pos' or info_type == 'joint_target_pos':
+        if info_type == 'joint_pos':
             pos = float(rec_data1) + float(rec_data2) / 60.
             normalized_pos = pos / 90
             return info_type, pos, normalized_pos
+        # elif info_type == 'joint_target_pos':
+        #     target_pos = rec_data1 * 256 + rec_data2
+        #     normalized_target_pos = float(target_pos) / 90
+        #     return info_type, target_pos, normalized_target_pos
         elif info_type == 'torque':
             voltage = float(rec_data2) / 255. * 12.
             voltage = voltage if rec_data1 == 0x01 else -voltage
@@ -106,20 +110,19 @@ class RoboticHand:
     def reset(self):
         for joint in self.joints:
             self.write_joint_pos(joint,0)
+        time.sleep(1)   # sleep for action executed
     
     def grasp(self):
         for joint in self.joints:
-            self.write_joint_pos(joint, 0.5)
+            self.write_joint_pos(joint, 1)
+        time.sleep(1)   # sleep for action executed
             
 if __name__ == '__main__':
     hand = RoboticHand()
     hand.reset()
     print(hand.read_joint_info(joint='index_finger', info_type='joint_pos'))
-    time.sleep(1)
     hand.grasp()
     print(hand.read_joint_info(joint='index_finger', info_type='joint_pos'))
-    time.sleep(1)
     hand.reset()
     print(hand.read_joint_info(joint='index_finger', info_type='joint_pos'))
-    time.sleep(1)
     hand.shutdown()

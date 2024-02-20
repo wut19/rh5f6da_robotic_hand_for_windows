@@ -178,7 +178,7 @@ class USBCAN:
 
             self.t = threading.Timer(0.03, self.read_can)
             self.t.start()
-            time.sleep(0.1)
+            time.sleep(0.01)
         else:
             self.musbcanopen = False
             self.ecan.CloseDevice(USBCAN2, DevIndex)
@@ -215,6 +215,8 @@ class USBCAN:
                         self.received_msg2['data'] = rec_[0].data
                     else:
                         self.received_msg2['data'] = ['Remote Request']
+        time.sleep(0.01)    # delay 0.01 for blocking
+        return self.received_msg1
 
     def write_can(self, info: dict, channel=1):
         if self.musbcanopen == False:
@@ -238,7 +240,7 @@ class USBCAN:
         else:
             self.ecan.Tramsmit(USBCAN2, DevIndex, Channel2, can_obj)
         
-        time.sleep(0.1)
+        time.sleep(0.01)
     
     def shutdown_can(self):
         self.ecan.CloseDevice(USBCAN2, DevIndex)
